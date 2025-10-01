@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Custom Link Page Creator</title>
+    <title>Advanced Link Page Creator</title>
     <style>
-        /* Original CSS styles */
+        /* CSS styles remain the same for a clean, modern look */
         :root {
             --primary-color: #007bff;
             --light-gray: #f8f9fa;
@@ -47,7 +47,7 @@
         }
         .controls input,
         .controls textarea,
-        .controls select { /* Added select for styling */
+        .controls select {
             width: 100%;
             padding: 12px;
             border: 1px solid var(--border-color);
@@ -55,17 +55,27 @@
             box-sizing: border-box;
             transition: border-color 0.3s;
         }
-        .controls input[type="color"] { /* Style for color input */
+        .controls input[type="color"] {
             width: 50px;
             height: 44px;
             padding: 0;
             border: none;
             cursor: pointer;
         }
-        .controls .color-group { /* Alignment for color pickers */
+        .controls .color-group,
+        .controls .url-controls { /* New class for URL and Shorten button layout */
             display: flex;
             align-items: center;
             gap: 10px;
+        }
+        .controls .url-controls input {
+            flex-grow: 1;
+        }
+        .controls .url-controls button {
+            width: auto;
+            padding: 12px 15px;
+            font-size: 14px;
+            white-space: nowrap;
         }
         .controls input[type="file"] {
             padding: 5px;
@@ -95,12 +105,8 @@
         .preview-card {
             text-align: center;
             padding: 30px 20px;
-            transition: background-color 0.5s; /* Smooth color transition */
+            transition: background-color 0.5s;
             min-height: 400px;
-        }
-        /* Custom Background Color Class (Default Light Gray) */
-        .bg-custom {
-            background-color: var(--light-gray);
         }
         #preview-image {
             width: 120px;
@@ -123,14 +129,16 @@
             margin-bottom: 30px;
             word-wrap: break-word;
         }
-        /* Style for the link wrapper (used to position the delete button) */
+        /* Link Wrapper */
         .link-wrapper {
             position: relative;
             margin-bottom: 10px; 
         }
-        /* General style for the links */
+        /* Link Button */
         #preview-links a {
-            display: block;
+            display: flex; /* Use flex for icon alignment */
+            align-items: center;
+            justify-content: center; /* Center text by default */
             background-color: var(--primary-color);
             color: white;
             padding: 15px;
@@ -142,19 +150,27 @@
             word-wrap: break-word;
             position: relative; 
             width: 100%;
-            max-width: 300px; /* Limit link width */
+            max-width: 300px; 
+        }
+        /* Link Icon Style */
+        .link-icon {
+            width: 24px;
+            height: 24px;
+            margin-right: 10px;
+            border-radius: 4px;
+            object-fit: cover;
         }
         #preview-links a:hover {
             transform: scale(1.03);
         }
         /* Layout utility classes */
         .align-left a {
-            margin: 0 0 0 auto; /* Align left by pushing to the right margin */
+            justify-content: flex-start; /* Align content to the start (left) */
+            padding-left: 25px;
         }
         .align-center a {
-            margin: 0 auto; /* Center alignment */
+            justify-content: center; 
         }
-        /* Delete button styles */
         .delete-btn {
             position: absolute;
             right: 5px;
@@ -234,15 +250,23 @@
         
         <div class="form-group">
             <label for="link-text">Link Title</label>
-            <input type="text" id="link-text" placeholder="e.g., Shop My Latest Products">
+            <input type="text" id="link-text" placeholder="e.g., My Latest Video">
+        </div>
+        
+        <div class="form-group">
+            <label for="link-icon-url">Link Icon (Optional)</label>
+            <input type="url" id="link-icon-url" placeholder="Paste image URL here (e.g., Logo, Emoji)">
         </div>
 
         <div class="form-group">
-            <label for="link-url">Link URL</label>
-            <input type="url" id="link-url" placeholder="https://yourstore.com">
+            <label for="link-url">Link URL (To be Shortened)</label>
+            <div class="url-controls">
+                <input type="url" id="link-url" placeholder="https://youtube.com/long-url-here">
+                <button id="shorten-url-btn" title="Simulated Shortening">Shorten</button>
+            </div>
         </div>
         
-        <button id="add-link-btn">Add Link</button>
+        <button id="add-link-btn">Add Link to Preview</button>
     </div>
 
     <div class="container preview">
@@ -262,8 +286,10 @@
         const titleInput = document.getElementById('title');
         const descriptionInput = document.getElementById('description');
         const linkTextInput = document.getElementById('link-text');
+        const linkIconUrlInput = document.getElementById('link-icon-url'); // NEW
         const linkUrlInput = document.getElementById('link-url');
         const addLinkBtn = document.getElementById('add-link-btn');
+        const shortenUrlBtn = document.getElementById('shorten-url-btn'); // NEW
 
         const bgColorInput = document.getElementById('bg-color');
         const linkColorInput = document.getElementById('link-color');
@@ -276,9 +302,8 @@
         const previewCard = document.querySelector('.preview-card');
 
 
-        // --- Event Listeners for Real-Time Updates ---
+        // --- Event Listeners for Real-Time Updates and Styling ---
 
-        // Image, Title, Description updates (Existing functionality)
         imageUploadInput.addEventListener('change', (event) => {
             const file = event.target.files[0];
             if (file) {
@@ -295,39 +320,52 @@
         descriptionInput.addEventListener('input', () => {
             previewDescription.textContent = descriptionInput.value || 'Your description will appear here.';
         });
-
-        // NEW: Update Background Color
         bgColorInput.addEventListener('input', () => {
-            // Directly change the preview card's background color
             previewCard.style.backgroundColor = bgColorInput.value;
         });
-
-        // NEW: Update Link Button Color
         linkColorInput.addEventListener('input', () => {
-            // 1. Update CSS Variable --primary-color in the whole document
             document.documentElement.style.setProperty('--primary-color', linkColorInput.value);
         });
-
-        // NEW: Update Link Alignment (Center/Left)
         linkAlignmentInput.addEventListener('change', () => {
-            // Remove existing alignment classes
             previewLinks.classList.remove('align-center', 'align-left');
-            
-            // Add the new selected alignment class
             if (linkAlignmentInput.value === 'left') {
                 previewLinks.classList.add('align-left');
             } else {
                 previewLinks.classList.add('align-center');
             }
         });
-        // Set initial alignment (since default is 'center')
-        previewLinks.classList.add('align-center');
+        previewLinks.classList.add('align-center'); // Initial alignment
 
 
-        // --- Add Link Button Functionality (with Delete Feature) ---
+        // --- NEW: Link Shortening (Simulated) ---
+        shortenUrlBtn.addEventListener('click', () => {
+            const longUrl = linkUrlInput.value.trim();
+            if (longUrl) {
+                // --- SIMULATED SHORTENING LOGIC ---
+                // NOTE: For real link shortening, you would call a service API here.
+                // Example: fetch('https://api.bitly.com/v4/shorten', { /* ... */ })
+                
+                let shortUrl = longUrl.substring(0, 30) + "..."; // Placeholder for demonstration
+                
+                // Better Simulation: Simple prefix and check for basic validity
+                if (longUrl.startsWith('http')) {
+                    shortUrl = 'https://short.ly/' + Math.random().toString(36).substring(2, 8);
+                } else {
+                    shortUrl = 'https://short.ly/error';
+                }
+
+                linkUrlInput.value = shortUrl;
+                alert('Link has been "shortened" (Simulated). For a real short link, a live API is required.');
+            } else {
+                alert('Please enter a URL to shorten.');
+            }
+        });
+
+        // --- Add Link Button Functionality (with Icon and Delete) ---
         addLinkBtn.addEventListener('click', () => {
             const text = linkTextInput.value.trim();
             let url = linkUrlInput.value.trim();
+            const iconUrl = linkIconUrlInput.value.trim(); // NEW
 
             if (text && url) {
                 if (!url.match(/^(http|https):\/\//i)) {
@@ -339,9 +377,20 @@
                 
                 const newLink = document.createElement('a');
                 newLink.href = url;
-                newLink.textContent = text;
                 newLink.target = '_blank'; 
                 
+                // NEW: Add Icon if URL is provided
+                if (iconUrl) {
+                    const iconImg = document.createElement('img');
+                    iconImg.src = iconUrl;
+                    iconImg.classList.add('link-icon');
+                    newLink.appendChild(iconImg);
+                }
+
+                // Add Link Text
+                const linkTextNode = document.createTextNode(text);
+                newLink.appendChild(linkTextNode);
+
                 const deleteBtn = document.createElement('span');
                 deleteBtn.textContent = '✕';
                 deleteBtn.classList.add('delete-btn'); 
@@ -354,7 +403,9 @@
                 linkWrapper.appendChild(deleteBtn);
                 previewLinks.appendChild(linkWrapper);
 
+                // Clear input fields
                 linkTextInput.value = '';
+                linkIconUrlInput.value = '';
                 linkUrlInput.value = '';
             } else {
                 alert('Please fill in both the Link Title and Link URL.');
