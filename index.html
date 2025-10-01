@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Custom Link Page Creator</title>
+    <style>
+        /* Original CSS styles */
+        :root {
+            --primary-color: #007bff;
+            --light-gray: #f8f9fa;
+            --dark-gray: #343a40;
+            --border-color: #dee2e6;
+            --shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: var(--light-gray);
+            color: var(--dark-gray);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            gap: 30px;
+            flex-wrap: wrap;
+        }
+        .container {
+            width: 100%;
+            max-width: 500px;
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+        }
+        h1, h2 {
+            text-align: center;
+            color: var(--dark-gray);
+        }
+        .controls .form-group {
+            margin-bottom: 20px;
+        }
+        .controls label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+        .controls input,
+        .controls textarea,
+        .controls select { /* Added select for styling */
+            width: 100%;
+            padding: 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            box-sizing: border-box;
+            transition: border-color 0.3s;
+        }
+        .controls input[type="color"] { /* Style for color input */
+            width: 50px;
+            height: 44px;
+            padding: 0;
+            border: none;
+            cursor: pointer;
+        }
+        .controls .color-group { /* Alignment for color pickers */
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .controls input[type="file"] {
+            padding: 5px;
+        }
+        .controls input:focus,
+        .controls textarea:focus,
+        .controls select:focus {
+            outline: none;
+            border-color: var(--primary-color);
+        }
+        .controls button {
+            width: 100%;
+            padding: 12px;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .controls button:hover {
+            background-color: #0056b3;
+        }
+        /* PREVIEW STYLES */
+        .preview-card {
+            text-align: center;
+            padding: 30px 20px;
+            transition: background-color 0.5s; /* Smooth color transition */
+            min-height: 400px;
+        }
+        /* Custom Background Color Class (Default Light Gray) */
+        .bg-custom {
+            background-color: var(--light-gray);
+        }
+        #preview-image {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 4px solid white;
+            box-shadow: var(--shadow);
+            margin-bottom: 15px;
+        }
+        #preview-title {
+            font-size: 24px;
+            font-weight: bold;
+            margin: 10px 0;
+            word-wrap: break-word;
+        }
+        #preview-description {
+            font-size: 16px;
+            color: #6c757d;
+            margin-bottom: 30px;
+            word-wrap: break-word;
+        }
+        /* Style for the link wrapper (used to position the delete button) */
+        .link-wrapper {
+            position: relative;
+            margin-bottom: 10px; 
+        }
+        /* General style for the links */
+        #preview-links a {
+            display: block;
+            background-color: var(--primary-color);
+            color: white;
+            padding: 15px;
+            margin: 0px auto; 
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 500;
+            transition: transform 0.2s, background-color 0.5s;
+            word-wrap: break-word;
+            position: relative; 
+            width: 100%;
+            max-width: 300px; /* Limit link width */
+        }
+        #preview-links a:hover {
+            transform: scale(1.03);
+        }
+        /* Layout utility classes */
+        .align-left a {
+            margin: 0 0 0 auto; /* Align left by pushing to the right margin */
+        }
+        .align-center a {
+            margin: 0 auto; /* Center alignment */
+        }
+        /* Delete button styles */
+        .delete-btn {
+            position: absolute;
+            right: 5px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: white;
+            font-size: 20px;
+            font-weight: bold;
+            cursor: pointer;
+            padding: 0 5px;
+            z-index: 10;
+            opacity: 0.8;
+            transition: opacity 0.2s;
+        }
+        .delete-btn:hover {
+            opacity: 1;
+        }
+        hr {
+            border: none;
+            border-top: 1px solid var(--border-color);
+            margin: 25px 0;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container controls">
+        <h1>✨ Page Builder</h1>
+
+        <hr>
+        <h3>🖼️ Basic Settings</h3>
+        <div class="form-group">
+            <label for="image-upload">Choose Profile Image</label>
+            <input type="file" id="image-upload" accept="image/*">
+        </div>
+
+        <div class="form-group">
+            <label for="title">Title</label>
+            <input type="text" id="title" placeholder="@YourHandle">
+        </div>
+
+        <div class="form-group">
+            <label for="description">Description</label>
+            <textarea id="description" rows="3" placeholder="A short bio about you"></textarea>
+        </div>
+
+        <hr>
+        <h3>🎨 Style Customization</h3>
+
+        <div class="form-group">
+            <label for="bg-color">Background Color</label>
+            <div class="color-group">
+                <input type="color" id="bg-color" value="#f8f9fa">
+                <span>Select Page Background Color</span>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label for="link-color">Button Color</label>
+            <div class="color-group">
+                <input type="color" id="link-color" value="#007bff">
+                <span>Select Link Button Color</span>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label for="link-alignment">Link Alignment</label>
+            <select id="link-alignment">
+                <option value="center">Center</option>
+                <option value="left">Left</option>
+            </select>
+        </div>
+
+
+        <hr>
+        <h3>🔗 Add Short Links</h3>
+        
+        <div class="form-group">
+            <label for="link-text">Link Title</label>
+            <input type="text" id="link-text" placeholder="e.g., Shop My Latest Products">
+        </div>
+
+        <div class="form-group">
+            <label for="link-url">Link URL</label>
+            <input type="url" id="link-url" placeholder="https://yourstore.com">
+        </div>
+        
+        <button id="add-link-btn">Add Link</button>
+    </div>
+
+    <div class="container preview">
+        <h2>Live Preview</h2>
+        <div class="preview-card bg-custom">
+            <img id="preview-image" src="https://via.placeholder.com/150/007BFF/FFFFFF?text=PHOTO" alt="Profile image">
+            <h2 id="preview-title">Your Title</h2>
+            <p id="preview-description">Your description will appear here. Start typing in the form to see it live!</p>
+            <div id="preview-links">
+                </div>
+        </div>
+    </div>
+
+    <script>
+        // Get elements from the DOM
+        const imageUploadInput = document.getElementById('image-upload');
+        const titleInput = document.getElementById('title');
+        const descriptionInput = document.getElementById('description');
+        const linkTextInput = document.getElementById('link-text');
+        const linkUrlInput = document.getElementById('link-url');
+        const addLinkBtn = document.getElementById('add-link-btn');
+
+        const bgColorInput = document.getElementById('bg-color');
+        const linkColorInput = document.getElementById('link-color');
+        const linkAlignmentInput = document.getElementById('link-alignment');
+
+        const previewImage = document.getElementById('preview-image');
+        const previewTitle = document.getElementById('preview-title');
+        const previewDescription = document.getElementById('preview-description');
+        const previewLinks = document.getElementById('preview-links');
+        const previewCard = document.querySelector('.preview-card');
+
+
+        // --- Event Listeners for Real-Time Updates ---
+
+        // Image, Title, Description updates (Existing functionality)
+        imageUploadInput.addEventListener('change', (event) => {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    previewImage.src = e.target.result;
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+        titleInput.addEventListener('input', () => {
+            previewTitle.textContent = titleInput.value || 'Your Title';
+        });
+        descriptionInput.addEventListener('input', () => {
+            previewDescription.textContent = descriptionInput.value || 'Your description will appear here.';
+        });
+
+        // NEW: Update Background Color
+        bgColorInput.addEventListener('input', () => {
+            // Directly change the preview card's background color
+            previewCard.style.backgroundColor = bgColorInput.value;
+        });
+
+        // NEW: Update Link Button Color
+        linkColorInput.addEventListener('input', () => {
+            // 1. Update CSS Variable --primary-color in the whole document
+            document.documentElement.style.setProperty('--primary-color', linkColorInput.value);
+        });
+
+        // NEW: Update Link Alignment (Center/Left)
+        linkAlignmentInput.addEventListener('change', () => {
+            // Remove existing alignment classes
+            previewLinks.classList.remove('align-center', 'align-left');
+            
+            // Add the new selected alignment class
+            if (linkAlignmentInput.value === 'left') {
+                previewLinks.classList.add('align-left');
+            } else {
+                previewLinks.classList.add('align-center');
+            }
+        });
+        // Set initial alignment (since default is 'center')
+        previewLinks.classList.add('align-center');
+
+
+        // --- Add Link Button Functionality (with Delete Feature) ---
+        addLinkBtn.addEventListener('click', () => {
+            const text = linkTextInput.value.trim();
+            let url = linkUrlInput.value.trim();
+
+            if (text && url) {
+                if (!url.match(/^(http|https):\/\//i)) {
+                    url = 'https://' + url;
+                }
+                
+                const linkWrapper = document.createElement('div');
+                linkWrapper.classList.add('link-wrapper'); 
+                
+                const newLink = document.createElement('a');
+                newLink.href = url;
+                newLink.textContent = text;
+                newLink.target = '_blank'; 
+                
+                const deleteBtn = document.createElement('span');
+                deleteBtn.textContent = '✕';
+                deleteBtn.classList.add('delete-btn'); 
+
+                deleteBtn.addEventListener('click', () => {
+                    linkWrapper.remove(); 
+                });
+
+                linkWrapper.appendChild(newLink);
+                linkWrapper.appendChild(deleteBtn);
+                previewLinks.appendChild(linkWrapper);
+
+                linkTextInput.value = '';
+                linkUrlInput.value = '';
+            } else {
+                alert('Please fill in both the Link Title and Link URL.');
+            }
+        });
+    </script>
+
+</body>
+</html>
